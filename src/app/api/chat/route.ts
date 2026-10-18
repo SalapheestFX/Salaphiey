@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       "Cite each point with its reference like [2:153]. " +
       "Never quote or write Qur'an text from memory. " +
       "Do not give religious rulings; suggest a qualified scholar instead. " +
-      "If the verses don't answer the question, say so. Keep answers short and respectful.";
+      "Ignore retrieved verses that do not fit the question; do not cite them. If none fit, say so. Keep answers short and respectful.";
 
     const history = messages.slice(0, -1);
     const reply = await claude(system, [
@@ -87,7 +87,8 @@ export async function POST(req: Request) {
       { role: "user", content: `Question: ${question}\n\nRetrieved verses:\n${context}` },
     ]);
 
-    return NextResponse.json({ reply, verses });
+    const cited = verses.filter((v) => reply.includes(`[${v.ref}]`));
+    return NextResponse.json({ reply, verses: cited.length ? cited : verses });
   } catch (e: any) {
     return NextResponse.json({ error: e.message ?? "Server error" }, { status: 500 });
   }
