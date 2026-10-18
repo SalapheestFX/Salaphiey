@@ -29,7 +29,9 @@ async function findRefs(q: string): Promise<string[]> {
       100
     );
     keywords = JSON.parse(out.replace(/```json|```/g, "").trim());
-  } catch {}
+  } catch (e) {
+    console.error("keywords:", e);
+  }
 
   const refs: string[] = [];
   for (const k of keywords.slice(0, 3)) {
@@ -39,7 +41,9 @@ async function findRefs(q: string): Promise<string[]> {
       for (const m of (j.data?.matches ?? []).slice(0, 4)) {
         refs.push(`${m.surah.number}:${m.numberInSurah}`);
       }
-    } catch {}
+    } catch (e) {
+      console.error("search:", e);
+    }
   }
   return [...new Set(refs)].slice(0, 6);
 }
@@ -79,7 +83,8 @@ export async function POST(req: Request) {
       "Cite each point with its reference like [2:153]. " +
       "Never quote or write Qur'an text from memory. " +
       "Do not give religious rulings; suggest a qualified scholar instead. " +
-      "Ignore retrieved verses that do not fit the question; do not cite them. If none fit, say so. Keep answers short and respectful.";
+      "Ignore retrieved verses that do not fit the question and do not cite them. " +
+      "If none fit, say so. Keep answers short and respectful.";
 
     const history = messages.slice(0, -1);
     const reply = await claude(system, [
